@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SecureApiWithJwt.Data;
 using SecureApiWithJwt.JWT;
 using SecureApiWithJwt.Models;
+using SecureApiWithJwt.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +22,12 @@ builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JWTSet
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+// Add Jwt Configure Services
+
+builder.Services.AddJwtConfigureServices(builder.Configuration);
+
 builder.Services.AddControllers();
 
 var app = builder.Build();
@@ -33,10 +40,11 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API v1");
         c.RoutePrefix = string.Empty; // Swagger UI opens at /
     });
-
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
