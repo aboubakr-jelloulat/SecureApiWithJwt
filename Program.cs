@@ -30,6 +30,12 @@ builder.Services.AddJwtConfigureServices(builder.Configuration);
 
 builder.Services.AddControllers();
 
+builder.Services.AddAutoMapper(options =>
+{
+    options.CreateMap<RegisterModel, AuthModel>().ReverseMap();
+
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
