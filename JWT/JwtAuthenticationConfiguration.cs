@@ -32,7 +32,7 @@ public static class JwtAuthenticationConfiguration
      */
     public static IServiceCollection AddJwtConfigureServices(this IServiceCollection services, IConfiguration configuration)
     {
-        var key = Encoding.ASCII.GetBytes(configuration["JWTSettings:Secret"]);
+        var key = Encoding.ASCII.GetBytes(configuration["JWTSettings:Key"]);
 
         services.AddAuthentication(options =>
         {

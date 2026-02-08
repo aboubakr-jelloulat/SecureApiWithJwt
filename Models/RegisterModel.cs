@@ -24,7 +24,6 @@ namespace SecureApiWithJwt.Models
         public string Password { get; set; }
 
 
-        [Required, StringLength(50)]
         public string? Role { get; set; }
     }
 }

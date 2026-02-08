@@ -4,6 +4,6 @@ namespace SecureApiWithJwt.Services;
 
 public interface IAuthService
 {
-    Task<AuthModel> Register(RegisterModel model);
+    Task<AuthModel> RegisterAsync(RegisterModel model);
 
 }

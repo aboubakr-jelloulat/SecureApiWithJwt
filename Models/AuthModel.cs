@@ -3,7 +3,7 @@
     public class AuthModel
     {
         public string Message { get; set; }
-        public bool IsAuthenticated { get; set; }
+        public bool IsAuthenticated { get; set; } = false;
         public string Username { get; set; }
         public string Email { get; set; }
         public List<string> Roles { get; set; }

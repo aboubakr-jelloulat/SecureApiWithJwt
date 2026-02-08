@@ -1,5 +1,6 @@
-﻿using AutoMapper;
+﻿
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SecureApiWithJwt.JWT;
@@ -10,20 +11,20 @@ using System.Text;
 
 namespace SecureApiWithJwt.Services;
 
+
 public class AuthService : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IMapper _mapper;
     private readonly JWTSettings _jwt;
 
-    public AuthService(UserManager<ApplicationUser> userManager, IMapper mapper, IOptions<JWTSettings> jwt)
+    public AuthService(UserManager<ApplicationUser> userManager, IOptions<JWTSettings> jwt)
     {
         _userManager = userManager;
-        _mapper = mapper;
         _jwt = jwt.Value;
     }
 
-    public async Task<AuthModel> Register(RegisterModel model)
+    
+    public async Task<AuthModel> RegisterAsync(RegisterModel model)
     {
         if (await _userManager.FindByEmailAsync(model.Email) is not null)
             return new AuthModel { Message = "Email already exists" };
@@ -31,13 +32,19 @@ public class AuthService : IAuthService
         if (await _userManager.FindByNameAsync(model.Username) is not null)
             return new AuthModel { Message = "Username already exists" };
 
-        var user = _mapper.Map<ApplicationUser>(model);
+        var user = new ApplicationUser
+        {
+            UserName = model.Username,
+            Email = model.Email,
+            FirstName = model.FirstName,
+            LastName = model.LastName
+        };
 
         var result = await _userManager.CreateAsync(user, model.Password);
 
         if (!result.Succeeded)
         {
-            var errors = string.Join(" | ", result.Errors.Select(e => e.Description));
+            var errors = string.Join(" *|* ", result.Errors.Select(e => e.Description));
             return new AuthModel { Message = errors };
         }
 
