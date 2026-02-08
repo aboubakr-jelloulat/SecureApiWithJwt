@@ -15,15 +15,59 @@ namespace SecureApiWithJwt.Services;
 public class AuthService : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly RoleManager<IdentityRole> _roleManager;
     private readonly JWTSettings _jwt;
 
-    public AuthService(UserManager<ApplicationUser> userManager, IOptions<JWTSettings> jwt)
+    public AuthService(UserManager<ApplicationUser> userManager, IOptions<JWTSettings> jwt, RoleManager<IdentityRole> roleManager)
     {
         _userManager = userManager;
         _jwt = jwt.Value;
+        _roleManager = roleManager;
     }
 
-    
+    public async Task<string> AddRoleAsync(AddRoleModel model)
+    {
+        var user = await _userManager.FindByIdAsync(model.UserId);
+
+        if (user is null || !await _roleManager.RoleExistsAsync(model.Role))
+            return "Invalid user ID or Role";
+
+        if (await _userManager.IsInRoleAsync(user, model.Role))
+            return "User already assigned to this role";
+
+        var result = await _userManager.AddToRoleAsync(user, model.Role);
+
+        return result.Succeeded ? string.Empty : "Sonething went wrong";
+    }
+
+    public async Task<AuthModel> GetTokenAsync(TokenRequestModel model)
+    {
+        var authModel = new AuthModel();
+
+        var user = await _userManager.FindByEmailAsync(model.Email);
+
+        if (user is null || !await _userManager.CheckPasswordAsync(user, model.Password))
+        {
+            authModel.Message = "Email Or Password is incorrect!";
+
+            return authModel;
+        }
+
+        authModel.IsAuthenticated = true;
+
+        var jwtSecurityToken = await CreateJwtToken(user);
+        var rolesList = await _userManager.GetRolesAsync(user);
+
+        authModel.Email = user.Email;
+        authModel.Username = user.UserName;
+        authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+        authModel.ExpiresOn = jwtSecurityToken.ValidTo;
+        authModel.Roles = rolesList.ToList();
+
+
+        return (authModel);
+    }
+
     public async Task<AuthModel> RegisterAsync(RegisterModel model)
     {
         if (await _userManager.FindByEmailAsync(model.Email) is not null)

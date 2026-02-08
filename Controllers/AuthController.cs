@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SecureApiWithJwt.Models;
 using SecureApiWithJwt.Services;
@@ -18,14 +19,14 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("reg")]
-    public async Task<IActionResult> Register([FromBody]RegisterModel model)
+    public async Task<IActionResult> Register([FromBody] RegisterModel model)
     {
         if (!ModelState.IsValid)
         {
 
             return BadRequest(ModelState);
         }
-            
+
 
         var result = await _authService.RegisterAsync(model);
 
@@ -35,7 +36,40 @@ public class AuthController : ControllerBase
         }
 
         return Ok(result);
+        //return Ok(new {Token = result.Token, ExpiresOn = result.ExpiresOn} );
     }
 
+    [Authorize(Roles = "Admin")]
+    [HttpPost("token")]
+    public async Task<IActionResult> GeTokent([FromBody] TokenRequestModel model)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        
+
+        var result = await _authService.GetTokenAsync(model);
+
+        if (!result.IsAuthenticated) // fash kay faild dima katkoun error olla katkoun  IsAuthenticated ba9a false 
+        {
+            return BadRequest(result.Message);
+        }
+
+        return Ok(result);
+    }
+
+    [HttpPost("addRole")]
+    public async Task<IActionResult> AddRole([FromBody] AddRoleModel model)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+
+        var result = await _authService.AddRoleAsync(model);
+
+        if (!string.IsNullOrEmpty(result))
+            return BadRequest(result);
+        
+        return Ok(model);
+    }
 
 }
